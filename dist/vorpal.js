@@ -4,11 +4,11 @@
  * Polyfill for ES6.
  */
 
-if (!global._babelPolyfill) {
-  // When the runtime transformer properly detects all shimmed methods, use instead.
-  // http://www.2ality.com/2015/12/babel6-helpersstandard-library.html#babel-plugin-transform-runtime
-  require("babel-polyfill");
-}
+// if (!global._babelPolyfill) {
+//   // When the runtime transformer properly detects all shimmed methods, use instead.
+//   // http://www.2ality.com/2015/12/babel6-helpersstandard-library.html#babel-plugin-transform-runtime
+//   require("babel-polyfill");
+// }
 
 /**
  * Module dependencies.
@@ -24,7 +24,7 @@ var Session = require("./session");
 var intercept = require("./intercept");
 var minimist = require("minimist");
 var commons = require("./vorpal-commons");
-const chalk = require("chalk");
+var chalk = require("chalk");
 var os = require("os");
 var History = require("./history");
 var LocalStorage = require("./local-storage");
@@ -84,7 +84,7 @@ function Vorpal() {
   // Placeholder for vantage server. If vantage
   // is used, this will be over-written.
   this.server = {
-    sessions: [],
+    sessions: []
   };
 
   // Whether all stdout is being hooked through a function.
@@ -102,7 +102,7 @@ function Vorpal() {
     local: true,
     user: "local",
     parent: this,
-    delimiter: this._delimiter,
+    delimiter: this._delimiter
   });
 
   // Allow unix-like key value pair normalization to be turned off by toggling this switch on.
@@ -169,7 +169,7 @@ Vorpal.prototype.parse = function (argv, options) {
           continue;
         }
         if (args[i].indexOf(" ") > -1) {
-          args[i] = '"' + args[i] + '"';
+          args[i] = "\"" + args[i] + "\"";
         }
       }
       this.exec(args.join(" "), function (err) {
@@ -343,13 +343,7 @@ vorpal.command = function (name, desc, opts) {
   if (!exists) {
     this.commands.push(cmd);
   } else {
-    console.warn(
-      chalk.yellow(
-        'Warning: command named "' +
-          name +
-          '" was registered more than once.\nIf you intend to override a command, you should explicitly remove the first command with command.remove().'
-      )
-    );
+    console.warn(chalk.yellow('Warning: command named "' + name + '" was registered more than once.\nIf you intend to override a command, you should explicitly remove the first command with command.remove().'));
   }
 
   this.emit("command_registered", { command: cmd, name: name });
@@ -574,7 +568,7 @@ vorpal._onKeypress = function (key, value) {
     this._send("vantage-keypress-upstream", "upstream", {
       key: key,
       value: value,
-      sessionId: this.session.id,
+      sessionId: this.session.id
     });
   }
 };
@@ -594,8 +588,7 @@ vorpal._onKeypress = function (key, value) {
 vorpal.prompt = function () {
   var _this = this;
 
-  var options =
-    arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   var userCallback = arguments[1];
 
   return new Promise(function (resolve) {
@@ -632,7 +625,7 @@ vorpal.prompt = function () {
       _this._send("vantage-prompt-downstream", "downstream", {
         options: options,
         value: undefined,
-        sessionId: ssn.id,
+        sessionId: ssn.id
       });
     }
     return prompt;
@@ -661,7 +654,7 @@ vorpal._prompt = function (data) {
   // local client, send the command downstream.
   if (!ssn.isLocal()) {
     this._send("vantage-resume-downstream", "downstream", {
-      sessionId: data.sessionId,
+      sessionId: data.sessionId
     });
     return self;
   }
@@ -670,28 +663,25 @@ vorpal._prompt = function (data) {
     return self;
   }
 
-  prompt = ui.prompt(
-    {
-      type: "input",
-      name: "command",
-      message: ssn.fullDelimiter(),
-    },
-    function (result) {
-      if (self.ui._cancelled === true) {
-        self.ui._cancelled = false;
-        return;
-      }
-      var str = String(result.command).trim();
-      self.emit("client_prompt_submit", str);
-      if (str === "" || str === "undefined") {
-        self._prompt(data);
-        return;
-      }
-      self.exec(str, function () {
-        self._prompt(data);
-      });
+  prompt = ui.prompt({
+    type: "input",
+    name: "command",
+    message: ssn.fullDelimiter()
+  }, function (result) {
+    if (self.ui._cancelled === true) {
+      self.ui._cancelled = false;
+      return;
     }
-  );
+    var str = String(result.command).trim();
+    self.emit("client_prompt_submit", str);
+    if (str === "" || str === "undefined") {
+      self._prompt(data);
+      return;
+    }
+    self.exec(str, function () {
+      self._prompt(data);
+    });
+  });
 
   return prompt;
 };
@@ -740,7 +730,7 @@ vorpal.exec = function (cmd, args, cb) {
     command: cmd,
     args: args,
     callback: cb,
-    session: ssn,
+    session: ssn
   };
 
   if (cb !== undefined) {
@@ -779,7 +769,7 @@ vorpal.execSync = function (cmd, options) {
     args: options,
     session: ssn,
     sync: true,
-    options: options,
+    options: options
   };
 
   return self._execQueueItem(command);
@@ -820,7 +810,7 @@ vorpal._execQueueItem = function (cmd) {
     command: cmd.command,
     args: cmd.args,
     completed: false,
-    sessionId: cmd.session.id,
+    sessionId: cmd.session.id
   });
 };
 
@@ -846,9 +836,7 @@ vorpal._exec = function (item) {
   }
 
   if (!item.session) {
-    throw new Error(
-      "Fatal Error: No session was passed into command for execution: " + item
-    );
+    throw new Error("Fatal Error: No session was passed into command for execution: " + item);
   }
 
   if (item.command === undefined) {
@@ -885,10 +873,7 @@ vorpal._exec = function (item) {
       // return the error.
       delete self._command;
       if (err) {
-        if (
-          cmd.options &&
-          (cmd.options.fatal === true || vorpal._fatal === true)
-        ) {
+        if (cmd.options && (cmd.options.fatal === true || vorpal._fatal === true)) {
           throw new Error(err);
         }
         return err;
@@ -914,19 +899,12 @@ vorpal._exec = function (item) {
     item._cancel = match._cancel;
     item.validate = match._validate;
     item.commandObject = match;
-    var init =
-      match._init ||
-      function (arrgs, cb) {
-        cb();
-      };
+    var init = match._init || function (arrgs, cb) {
+      cb();
+    };
     var delimiter = match._delimiter || String(item.command) + ":";
 
-    item.args = self.util.buildCommandArgs(
-      matchArgs,
-      match,
-      item,
-      self.isCommandArgKeyPairNormalized
-    );
+    item.args = self.util.buildCommandArgs(matchArgs, match, item, self.isCommandArgKeyPairNormalized);
 
     // If we get a string back, it's a validation error.
     // Show help and return.
@@ -944,10 +922,7 @@ vorpal._exec = function (item) {
         allValid = false;
         break;
       }
-      commandParts.args = self.util.buildCommandArgs(
-        commandParts.args,
-        commandParts.command
-      );
+      commandParts.args = self.util.buildCommandArgs(commandParts.args, commandParts.command);
       if (_.isString(commandParts.args) || !_.isObject(commandParts.args)) {
         throwHelp(item, commandParts.args, commandParts.command);
         allValid = false;
@@ -1004,15 +979,12 @@ vorpal._exec = function (item) {
       var response;
       var error;
       try {
-        response = item.fn.call(
-          new CommandInstance({
-            downstream: undefined,
-            commandWrapper: item,
-            commandObject: item.commandObject,
-            args: item.args,
-          }),
-          item.args
-        );
+        response = item.fn.call(new CommandInstance({
+          downstream: undefined,
+          commandWrapper: item,
+          commandObject: item.commandObject,
+          args: item.args
+        }), item.args);
       } catch (e) {
         error = e;
       }
@@ -1029,7 +1001,7 @@ vorpal._exec = function (item) {
         commandWrapper: item,
         command: pipe.command._name,
         commandObject: pipe.command,
-        args: pipe.args,
+        args: pipe.args
       });
     });
 
@@ -1132,73 +1104,45 @@ vorpal._commandHelp = function (command) {
   command = command ? String(command).trim() : undefined;
   for (var i = 0; i < this.commands.length; ++i) {
     var parts = String(this.commands[i]._name).split(" ");
-    if (
-      parts.length === 1 &&
-      parts[0] === command &&
-      !this.commands[i]._hidden &&
-      !this.commands[i]._catch
-    ) {
+    if (parts.length === 1 && parts[0] === command && !this.commands[i]._hidden && !this.commands[i]._catch) {
       singleMatches.push(command);
     }
     var str = "";
     for (var j = 0; j < parts.length; ++j) {
       str = String(str + " " + parts[j]).trim();
-      if (
-        str === command &&
-        !this.commands[i]._hidden &&
-        !this.commands[i]._catch
-      ) {
+      if (str === command && !this.commands[i]._hidden && !this.commands[i]._catch) {
         matches.push(this.commands[i]);
         break;
       }
     }
   }
 
-  var invalidString =
-    command && matches.length === 0 && singleMatches.length === 0
-      ? ["", "  Invalid Command. Showing Help:", ""].join("\n")
-      : "";
+  var invalidString = command && matches.length === 0 && singleMatches.length === 0 ? ["", "  Invalid Command. Showing Help:", ""].join("\n") : "";
 
   var commandMatch = matches.length > 0;
-  var commandMatchLength = commandMatch
-    ? String(command).trim().split(" ").length + 1
-    : 1;
+  var commandMatchLength = commandMatch ? String(command).trim().split(" ").length + 1 : 1;
   matches = matches.length === 0 ? this.commands : matches;
 
   var skipGroups = !(matches.length + 6 > process.stdout.rows);
 
-  var commands = matches
-    .filter(function (cmd) {
-      return !cmd._noHelp;
-    })
-    .filter(function (cmd) {
-      return !cmd._catch;
-    })
-    .filter(function (cmd) {
-      return !cmd._hidden;
-    })
-    .filter(function (cmd) {
-      if (skipGroups === true) {
-        return true;
-      }
-      return String(cmd._name).trim().split(" ").length <= commandMatchLength;
-    })
-    .map(function (cmd) {
-      var args = cmd._args
-        .map(function (arg) {
-          return VorpalUtil.humanReadableArgName(arg);
-        })
-        .join(" ");
+  var commands = matches.filter(function (cmd) {
+    return !cmd._noHelp;
+  }).filter(function (cmd) {
+    return !cmd._catch;
+  }).filter(function (cmd) {
+    return !cmd._hidden;
+  }).filter(function (cmd) {
+    if (skipGroups === true) {
+      return true;
+    }
+    return String(cmd._name).trim().split(" ").length <= commandMatchLength;
+  }).map(function (cmd) {
+    var args = cmd._args.map(function (arg) {
+      return VorpalUtil.humanReadableArgName(arg);
+    }).join(" ");
 
-      return [
-        cmd._name +
-          (cmd._alias ? "|" + cmd._alias : "") +
-          (cmd.options.length ? " [options]" : "") +
-          " " +
-          args,
-        cmd.description() || "",
-      ];
-    });
+    return [cmd._name + (cmd._alias ? "|" + cmd._alias : "") + (cmd.options.length ? " [options]" : "") + " " + args, cmd.description() || ""];
+  });
 
   var width = commands.reduce(function (max, commandX) {
     return Math.max(max, commandX[0].length);
@@ -1206,31 +1150,16 @@ vorpal._commandHelp = function (command) {
 
   var counts = {};
 
-  var groups = _.uniq(
-    matches
-      .filter(function (cmd) {
-        return String(cmd._name).trim().split(" ").length > commandMatchLength;
-      })
-      .map(function (cmd) {
-        return String(cmd._name)
-          .split(" ")
-          .slice(0, commandMatchLength)
-          .join(" ");
-      })
-      .map(function (cmd) {
-        counts[cmd] = counts[cmd] || 0;
-        counts[cmd]++;
-        return cmd;
-      })
-  ).map(function (cmd) {
-    var prefix =
-      "    " +
-      VorpalUtil.pad(cmd + " *", width) +
-      "  " +
-      counts[cmd] +
-      " sub-command" +
-      (counts[cmd] === 1 ? "" : "s") +
-      ".";
+  var groups = _.uniq(matches.filter(function (cmd) {
+    return String(cmd._name).trim().split(" ").length > commandMatchLength;
+  }).map(function (cmd) {
+    return String(cmd._name).split(" ").slice(0, commandMatchLength).join(" ");
+  }).map(function (cmd) {
+    counts[cmd] = counts[cmd] || 0;
+    counts[cmd]++;
+    return cmd;
+  })).map(function (cmd) {
+    var prefix = "    " + VorpalUtil.pad(cmd + " *", width) + "  " + counts[cmd] + " sub-command" + (counts[cmd] === 1 ? "" : "s") + ".";
     return prefix;
   });
 
@@ -1238,37 +1167,21 @@ vorpal._commandHelp = function (command) {
 
   var descriptionWidth = process.stdout.columns - (width + 4);
 
-  var commandsString =
-    commands.length < 1
-      ? ""
-      : "\n  Commands:\n\n" +
-        commands
-          .map(function (cmd) {
-            var prefix = "    " + VorpalUtil.pad(cmd[0], width) + "  ";
-            var suffix = wrap(cmd[1], descriptionWidth - 8).split("\n");
-            for (var _i = 0; _i < suffix.length; ++_i) {
-              if (_i !== 0) {
-                suffix[_i] = VorpalUtil.pad("", width + 6) + suffix[_i];
-              }
-            }
-            suffix = suffix.join("\n");
-            return prefix + suffix;
-          })
-          .join("\n") +
-        "\n\n";
+  var commandsString = commands.length < 1 ? "" : "\n  Commands:\n\n" + commands.map(function (cmd) {
+    var prefix = "    " + VorpalUtil.pad(cmd[0], width) + "  ";
+    var suffix = wrap(cmd[1], descriptionWidth - 8).split("\n");
+    for (var _i = 0; _i < suffix.length; ++_i) {
+      if (_i !== 0) {
+        suffix[_i] = VorpalUtil.pad("", width + 6) + suffix[_i];
+      }
+    }
+    suffix = suffix.join("\n");
+    return prefix + suffix;
+  }).join("\n") + "\n\n";
 
-  var groupsString =
-    groups.length < 1 ? "" : "  Command Groups:\n\n" + groups.join("\n") + "\n";
+  var groupsString = groups.length < 1 ? "" : "  Command Groups:\n\n" + groups.join("\n") + "\n";
 
-  var results = String(
-    this._helpHeader(!!invalidString) +
-      invalidString +
-      commandsString +
-      "\n" +
-      groupsString
-  )
-    .replace(/\n\n\n/g, "\n\n")
-    .replace(/\n\n$/, "\n");
+  var results = String(this._helpHeader(!!invalidString) + invalidString + commandsString + "\n" + groupsString).replace(/\n\n\n/g, "\n\n").replace(/\n\n$/, "\n");
 
   return results;
 };
@@ -1325,9 +1238,7 @@ vorpal._send = function (str, direction, data, options) {
   data = data || {};
   var ssn = this.getSessionById(data.sessionId);
   if (!ssn) {
-    throw new Error(
-      "No Sessions logged for ID " + data.sessionId + " in vorpal._send."
-    );
+    throw new Error("No Sessions logged for ID " + data.sessionId + " in vorpal._send.");
   }
   if (direction === "upstream") {
     if (ssn.client) {
@@ -1378,11 +1289,7 @@ vorpal._proxy = function (str, direction, data, options) {
 
 vorpal.getSessionById = function (id) {
   if (_.isObject(id)) {
-    throw new Error(
-      "vorpal.getSessionById: id " +
-        JSON.stringify(id) +
-        " should not be an object."
-    );
+    throw new Error("vorpal.getSessionById: id " + JSON.stringify(id) + " should not be an object.");
   }
   var ssn = _.find(this.server.sessions, { id: id });
   ssn = this.session.id === id ? this.session : ssn;
@@ -1392,14 +1299,9 @@ vorpal.getSessionById = function (id) {
   if (!ssn) {
     var sessions = {
       local: this.session.id,
-      server: _.map(this.server.sessions, "id"),
+      server: _.map(this.server.sessions, "id")
     };
-    throw new Error(
-      "No session found for id " +
-        id +
-        " in vorpal.getSessionById. Sessions: " +
-        JSON.stringify(sessions)
-    );
+    throw new Error("No session found for id " + id + " in vorpal.getSessionById. Sessions: " + JSON.stringify(sessions));
   }
   return ssn;
 };
@@ -1428,5 +1330,5 @@ Object.defineProperty(vorpal, "activeCommand", {
   get: function get() {
     var result = this._command ? this._command.commandInstance : undefined;
     return result;
-  },
+  }
 });
